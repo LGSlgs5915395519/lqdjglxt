@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六年级七班 - 班级周报系统（无障碍修复版）</title>
+    <meta name="description" content="六年级七班向阳花中队的班级周报管理系统，支持上传、展示和下载周报与媒体文件。">
+    <style>
+        /* 基础重置与无障碍优化 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :focus { outline: 2px solid #3498db; outline-offset: 2px; }
+        
+        html { font-size: 16px; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif; 
+            line-height: 1.6; color: #333; background-color: #f0f2f5; 
+            padding: 20px; min-height: 100vh; display: flex; flex-direction: column; 
+        }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+        
+        /* 布局容器 */
+        .container { 
+            max-width: 1000px; width: 100%; margin: 0 auto; background: white; 
+            border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); overflow: hidden; 
+            flex-grow: 1; display: flex; flex-direction: column; 
+        }
+        
+        /* 页头 */
+        header[role="banner"] { 
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); color: white; 
+            padding: 1.5rem; text-align: center; flex-shrink: 0; 
+        }
+        .header-content h1 { 
+            font-size: 1.8rem; margin-bottom: 0.5rem; 
+            display: flex; align-items: center; justify-content: center; gap: 0.75rem; 
+        }
+        .header-content p { opacity: 0.9; font-size: 1rem; }
+        
+        /* 主内容区 */
+        main[role="main"] { padding: 1.5rem; flex-grow: 1; overflow-y: auto; }
+        
+        /* 按钮样式 */
+        button { 
+            cursor: pointer; transition: all 0.2s; border: none; border-radius: 6px; 
+            font-weight: 500; display: inline-flex; align-items: center; justify-content: center; 
+            gap: 0.5rem; padding: 0.75rem 1.5rem; font-size: 1rem; 
+        }
+        .upload-btn { 
+            background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); 
+            margin-top: 1rem; 
+        }
+        .upload-btn:hover, .upload-btn:focus { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-success { background: #2ecc71; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        
+        /* 周报项 */
+        .report-item { 
+            background: #fff; border: 1px solid #eaeaea; border-radius: 8px; padding: 1.5rem; 
+            margin-bottom: 1.5rem; break-inside: avoid; 
+        }
+        .report-header { 
+            display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; 
+            padding-bottom: 1rem; border-bottom: 1px solid #f0f0f0; 
+        }
+        .report-title { font-size: 1.4rem; color: #2c3e50; margin-bottom: 0.5rem; }
+        .report-meta { color: #7f8c8d; font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 1rem; }
+        .report-content { line-height: 1.6; margin-bottom: 1.5rem; white-space: pre-line; }
+        
+        /* 媒体区域 */
+        .media-gallery { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+            gap: 1rem; margin-top: 1rem; 
+        }
+        .media-item { 
+            position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; 
+            background: #f8f9fa; border: 2px solid transparent; transition: all 0.3s; 
+        }
+        .media-item:hover, .media-item:focus-within { border-color: #3498db; transform: scale(1.02); }
+        .media-item img, .media-item video { 
+            width: 100%; height: 100%; object-fit: cover; display: block; 
+        }
+        .download-btn { 
+            position: absolute; bottom: 0.5rem; right: 0.5rem; background: rgba(0,0,0,0.7); 
+            color: white; border: none; border-radius: 50%; width: 2.5rem; height: 2.5rem; 
+            display: flex; align-items: center; justify-content: center; font-size: 0.9rem; 
+            opacity: 0; transition: opacity 0.3s; 
+        }
+        .media-item:hover .download-btn, .media-item:focus-within .download-btn, .download-btn:focus { opacity: 1; }
+        
+        /* 模态框 */
+        .modal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; 
+            padding: 1rem; 
+        }
+        .modal-content { 
+            background: white; width: 100%; max-width: 500px; max-height: 90vh; 
+            border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; 
+        }
+        .modal-header { 
+            background: #2d3748; color: white; padding: 1.25rem; font-weight: bold; 
+            display: flex; justify-content: space-between; align-items: center; 
+        }
+        .modal-body { padding: 1.5rem; overflow-y: auto; }
+        
+        /* 表单 */
+        .form-group { margin-bottom: 1.25rem; }
+        .form-label { 
+            display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2d3748; 
+            font-size: 0.95rem; 
+        }
+        .form-control { 
+            width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; 
+            font-size: 1rem; transition: border 0.3s; 
+        }
+        .form-control:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
+        textarea.form-control { min-height: 7.5rem; resize: vertical; }
+        
+        /* 文件上传 */
+        .file-upload-area { 
+            border: 2px dashed #ccc; border-radius: 8px; padding: 2rem; text-align: center; 
+            margin: 1rem 0; background: #f8f9fa; cursor: pointer; transition: all 0.3s; 
+        }
+        .file-upload-area.dragover { border-color: #3498db; background: #e3f2fd; }
+        .file-input { display: none; }
+        .upload-preview { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+            gap: 0.75rem; margin: 1rem 0; 
+        }
+        .preview-item { 
+            position: relative; border-radius: 6px; overflow: hidden; aspect-ratio: 1; 
+            background: #f1f5f9; 
+        }
+        .preview-item img, .preview-item video { width: 100%; height: 100%; object-fit: cover; }
+        .preview-remove { 
+            position: absolute; top: 0.25rem; right: 0.25rem; background: rgba(0,0,0,0.7); 
+            color: white; border: none; border-radius: 50%; width: 1.5rem; height: 1.5rem; 
+            cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; 
+        }
+        
+        /* 按钮组 */
+        .btn-group { display: flex; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap; }
+        .btn-group .btn { flex: 1; min-width: 120px; }
+        
+        /* 错误提示 */
+        .error-message { 
+            color: #e74c3c; margin-top: 0.75rem; text-align: center; padding: 0.75rem; 
+            background: #fed7d7; border-radius: 4px; display: none; 
+        }
+        
+        /* 空状态 */
+        .empty-state { text-align: center; padding: 3rem 1.25rem; color: #7f8c8d; }
+        .empty-state i { font-size: 4rem; margin-bottom: 1.25rem; opacity: 0.5; }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .report-header { flex-direction: column; gap: 1rem; }
+            .report-actions { align-self: flex-end; }
+            .btn-group { flex-direction: column; }
+            .btn-group .btn { width: 100%; }
+        }
+    </style>
+    <!-- 字体图标预加载 -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
+</head>
+<body>
+    <div class="container">
+        <header role="banner">
+            <div class="header-content">
+                <h1><i class="fas fa-newspaper" aria-hidden="true"></i> 六年级七班班级周报系统</h1>
+                <p>无障碍修复版 - 支持上传、展示和下载周报与媒体文件</p>
+                <button class="upload-btn" onclick="openPasswordModal('create')" aria-label="创建新的班级周报">
+                    <i class="fas fa-plus" aria-hidden="true"></i> 创建新周报
+                </button>
+            </div>
+        </header>
+        
+        <main id="reportsContainer" role="main">
+            <!-- 周报内容将通过JavaScript动态加载到这里 -->
+            <p class="empty-state" id="loadingMessage">正在加载周报内容...</p>
+        </main>
+    </div>
+
+    <!-- 密码验证模态框 -->
+    <div id="passwordModal" class="modal" role="dialog" aria-labelledby="passwordModalTitle" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="passwordModalTitle">操作验证</h2>
+                <button class="modal-close" onclick="closeModal('passwordModal')" aria-label="关闭验证对话框">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="passwordModalDesc">请输入操作密码以继续：</p>
+                <div class="form-group">
+                    <label for="passwordInput" class="form-label">密码</label>
+                    <input type="password" id="passwordInput" class="form-control" placeholder="请输入密码" aria-required="true">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="verifyPassword()">确认</button>
+                    <button class="btn" onclick="closeModal('passwordModal')" style="background: #95a5a6; color: white;">取消</button>
+                </div>
+                <div id="passwordError" class="error-message" role="alert" aria-live="assertive">
+                    <i class="fas fa-exclamation-circle" aria-hidden="true"></i> 密码错误，请重试
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建/编辑周报模态框 -->
+    <div id="editModal" class="modal" role="dialog" aria-labelledby="editModalTitle" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="editModalTitle">创建新周报</h2>
+                <button class="modal-close" onclick="closeModal('editModal')" aria-label="关闭编辑对话框">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="reportForm" onsubmit="event.preventDefault(); saveReport();">
+                    <div class="form-group">
+                        <label for="reportTitle" class="form-label">周报标题</label>
+                        <input type="text" id="reportTitle" class="form-control" placeholder="请输入周报标题" aria-required="true">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reportAuthor" class="form-label">编辑人</label>
+                        <input type="text" id="reportAuthor" class="form-control" placeholder="请输入编辑人姓名" aria-required="true">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reportContent" class="form-label">周报内容</label>
+                        <textarea id="reportContent" class="form-control" placeholder="请输入周报内容..." rows="6"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">上传图片/视频</label>
+                        <div class="file-upload-area" id="fileDropArea" role="button" tabindex="0" 
+                             onclick="document.getElementById('fileInput').click()" 
+                             onkeydown="if(event.key === 'Enter' || event.key === ' ') {document.getElementById('fileInput').click(); event.preventDefault();}">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: #ccc; margin-bottom: 0.5rem;" aria-hidden="true"></i>
+                            <p>拖拽文件到此处，或点击选择文件</p>
+                            <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">支持拍照、图片、视频文件</p>
+                        </div>
+                        <input type="file" id="fileInput" class="file-input" multiple accept="image/*,video/*" capture="camera">
+                        
+                        <div id="uploadPreview" class="upload-preview" role="list" aria-label="已选择的文件预览">
+                            <!-- 文件预览将显示在这里 -->
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save" aria-hidden="true"></i> 保存周报
+                        </button>
+                        <button type="button" class="btn btn-danger" id="deleteBtn" onclick="deleteReport()" style="display: none;">
+                            <i class="fas fa-trash" aria-hidden="true"></i> 删除周报
+                        </button>
+                        <button type="button" class="btn" onclick="closeModal('editModal')" style="background: #95a5a6; color: white;">
+                            取消
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 系统配置
+        const UPLOAD_PASSWORD = "123456789";
+        const MAX_FILE_SIZE = 10 * 1024 * 1024;
+        
+        // 周报数据
+        let weeklyReports = JSON.parse(localStorage.getItem('class_weekly_reports_accessibility_fixed')) || [];
+        let currentEditId = null;
+        let mediaFiles = [];
+        let currentAction = '';
+        let isAuthenticated = false;
+
+        // 页面加载
+        document.addEventListener('DOMContentLoaded', function() {
+            // 立即显示加载状态
+            document.getElementById('loadingMessage').textContent = '正在加载周报...';
+            
+            // 设置文件上传
+            setupFileUpload();
+            
+            // 设置全局键盘快捷键
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const openModal = document.querySelector('.modal[style*="display: flex"]');
+                    if (openModal) closeModal(openModal.id);
+                }
+            });
+            
+            // 渲染周报
+            setTimeout(() => {
+                renderReports();
+            }, 100);
+        });
+
+        // 设置文件上传
+        function setupFileUpload() {
+            const dropArea = document.getElementById('fileDropArea');
+            const fileInput = document.getElementById('fileInput');
+            
+            if (!dropArea || !fileInput) {
+                console.error('文件上传元素未找到');
+                return;
+            }
+            
+            // 点击上传区域
+            dropArea.addEventListener('click', function(e) {
+                if (e.target.closest('.preview-remove')) return;
+                fileInput.click();
+            });
+            
+            // 文件选择
+            fileInput.addEventListener('change', function(e) {
+                handleFileSelect(e.target.files);
+            });
+            
+            // 拖拽事件
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, function(e) {
+                    e.preventDefault();
+                    dropArea.classList.add('dragover');
+                });
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, function(e) {
+                    e.preventDefault();
+                    dropArea.classList.remove('dragover');
+                });
+            });
+            
+            // 处理拖放
+            dropArea.addEventListener('drop', function(e) {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelect(files);
+                }
+            });
+        }
+
+        // 处理文件选择
+        function handleFileSelect(files) {
+            if (!files || files.length === 0) return;
+            
+            for (let file of files) {
+                if (file.size > MAX_FILE_SIZE) {
+                    alert(`文件 "${file.name}" 太大，请选择小于 10MB 的文件`);
+                    continue;
+                }
+                
+                if (!file.type.match(/^image\//) && !file.type.match(/^video\//)) {
+                    alert(`文件 "${file.name}" 不是支持的图片或视频格式`);
+                    continue;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mediaFiles.push({
+                        name: file.name.replace(/[^a-z0-9.]/gi, '_'),
+                        type: file.type.match(/^video\//) ? 'video' : 'image',
+                        data: e.target.result,
+                        file: file
+                    });
+                    updateFilePreview();
+                };
+                reader.onerror = function() {
+                    alert(`读取文件 "${file.name}" 时出错`);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 更新文件预览
+        function updateFilePreview() {
+            const preview = document.getElementById('uploadPreview');
+            if (!preview) return;
+            
+            preview.innerHTML = '';
+            
+            mediaFiles.forEach((file, index) => {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.setAttribute('role', 'listitem');
+                
+                if (file.type === 'image') {
+                    previewItem.innerHTML = `
+                        <img src="${file.data}" alt="预览图片: ${file.name}" loading="lazy">
+                        <button class="preview-remove" onclick="removeFile(${index})" aria-label="移除文件 ${file.name}">&times;</button>
+                    `;
+                } else {
+                    previewItem.innerHTML = `
+                        <video controls preload="metadata">
+                            <source src="${file.data}" type="${file.file.type}">
+                        </video>
+                        <button class="preview-remove" onclick="removeFile(${index})" aria-label="移除文件 ${file.name}">&times;</button>
+                    `;
+                }
+                
+                preview.appendChild(previewItem);
+            });
+        }
+
+        // 移除文件
+        function removeFile(index) {
+            if (index >= 0 && index < mediaFiles.length) {
+                mediaFiles.splice(index, 1);
+                updateFilePreview();
+            }
+        }
+
+        // 打开密码验证
+        function openPasswordModal(action, reportId = null) {
+            currentAction = action;
+            currentEditId = reportId;
+            
+            const modal = document.getElementById('passwordModal');
+            const titleMap = {
+                'create': '创建周报',
+                'edit': '编辑周报',
+                'delete': '删除周报'
+            };
+            
+            document.getElementById('passwordModalTitle').textContent = titleMap[action] || '操作验证';
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            
+            const input = document.getElementById('passwordInput');
+            input.value = '';
+            input.focus();
+            
+            document.getElementById('passwordError').style.display = 'none';
+        }
+
+        // 验证密码
+        function verifyPassword() {
+            const input = document.getElementById('passwordInput');
+            const errorEl = document.getElementById('passwordError');
+            
+            if (input.value === UPLOAD_PASSWORD) {
+                isAuthenticated = true;
+                closeModal('passwordModal');
+                
+                switch(currentAction) {
+                    case 'create': openEditModal(); break;
+                    case 'edit': openEditModal(currentEditId); break;
+                    case 'delete': 
+                        if (confirm('确定要删除这篇周报吗？此操作不可撤销！')) {
+                            deleteReportConfirmed();
+                        }
+                        break;
+                }
+            } else {
+                errorEl.style.display = 'block';
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        // 打开编辑模态框
+        function openEditModal(reportId = null) {
+            const modal = document.getElementById('editModal');
+            currentEditId = reportId;
+            mediaFiles = [];
+            
+            if (reportId) {
+                document.getElementById('editModalTitle').textContent = '编辑周报';
+                document.getElementById('deleteBtn').style.display = 'block';
+                
+                const report = weeklyReports.find(r => r.id === reportId);
+                if (report) {
+                    document.getElementById('reportTitle').value = report.title || '';
+                    document.getElementById('reportAuthor').value = report.author || '';
+                    document.getElementById('reportContent').value = report.content || '';
+                    
+                    if (report.media && report.media.length > 0) {
+                        mediaFiles = [...report.media];
+                        updateFilePreview();
+                    }
+                }
+            } else {
+                document.getElementById('editModalTitle').textContent = '创建新周报';
+                document.getElementById('deleteBtn').style.display = 'none';
+                
+                document.getElementById('reportTitle').value = '';
+                document.getElementById('reportAuthor').value = '';
+                document.getElementById('reportContent').value = '';
+                document.getElementById('uploadPreview').innerHTML = '';
+                
+                const lastReport = weeklyReports[0];
+                if (lastReport) {
+                    document.getElementById('reportAuthor').value = lastReport.author;
+                }
+            }
+            
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            document.getElementById('reportTitle').focus();
+        }
+
+        // 关闭模态框
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+                modal.setAttribute('aria-hidden', 'true');
+            }
+        }
+
+        // 保存周报
+        function saveReport() {
+            if (!isAuthenticated) {
+                alert('请先验证身份');
+                return;
+            }
+            
+            const title = document.getElementById('reportTitle').value.trim();
+            const author = document.getElementById('reportAuthor').value.trim();
+            const content = document.getElementById('reportContent').value.trim();
+            
+            if (!title) {
+                alert('请输入周报标题');
+                document.getElementById('reportTitle').focus();
+                return;
+            }
+            if (!author) {
+                alert('请输入编辑人姓名');
+                document.getElementById('reportAuthor').focus();
+                return;
+            }
+            
+            const now = new Date();
+            
+            if (currentEditId) {
+                const index = weeklyReports.findIndex(r => r.id === currentEditId);
+                if (index !== -1) {
+                    weeklyReports[index] = {
+                        ...weeklyReports[index],
+                        title,
+                        author,
+                        content,
+                        media: [...mediaFiles],
+                        lastModified: now.toISOString()
+                    };
+                }
+            } else {
+                const newReport = {
+                    id: Date.now(),
+                    title,
+                    author,
+                    content,
+                    date: now.toISOString().split('T')[0],
+                    time: now.toTimeString().split(' ')[0].substring(0, 5),
+                    created: now.toISOString(),
+                    lastModified: now.toISOString(),
+                    media: [...mediaFiles]
+                };
+                weeklyReports.unshift(newReport);
+            }
+            
+            saveToLocalStorage();
+            renderReports();
+            closeModal('editModal');
+            alert(currentEditId ? '周报更新成功！' : '周报创建成功！');
+            isAuthenticated = false;
+        }
+
+        // 删除周报确认
+        function deleteReportConfirmed() {
+            weeklyReports = weeklyReports.filter(r => r.id !== currentEditId);
+            saveToLocalStorage();
+            renderReports();
+            alert('周报已删除');
+            isAuthenticated = false;
+        }
+
+        // 渲染周报列表
+        function renderReports() {
+            const container = document.getElementById('reportsContainer');
+            if (!container) return;
+            
+            if (weeklyReports.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" role="status">
+                        <i class="fas fa-inbox" aria-hidden="true"></i>
+                        <h2>暂无周报内容</h2>
+                        <p>点击上方"创建新周报"按钮添加第一篇周报</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            weeklyReports.sort((a, b) => new Date(b.created) - new Date(a.created));
+            
+            let html = '';
+            weeklyReports.forEach(report => {
+                let mediaHtml = '';
+                if (report.media && report.media.length > 0) {
+                    mediaHtml = `<div class="media-gallery" role="list" aria-label="周报媒体文件">`;
+                    report.media.forEach((media, index) => {
+                        const filename = `${report.title}_${index+1}.${media.type === 'image' ? 'jpg' : 'mp4'}`;
+                        mediaHtml += `
+                            <div class="media-item" role="listitem">
+                                ${media.type === 'image' ? 
+                                    `<img src="${media.data}" alt="周报图片: ${report.title}" loading="lazy">` : 
+                                    `<video controls preload="metadata"><source src="${media.data}" type="${media.type === 'video' ? 'video/mp4' : 'image/jpeg'}"></video>`}
+                                <button class="download-btn" onclick="downloadMedia('${media.data}', '${filename}')" aria-label="下载 ${filename}">
+                                    <i class="fas fa-download" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        `;
+                    });
+                    mediaHtml += `</div>`;
+                }
+                
+                html += `
+                    <section class="report-item" aria-labelledby="report-title-${report.id}">
+                        <div class="report-header">
+                            <div>
+                                <h3 id="report-title-${report.id}" class="report-title">${escapeHtml(report.title)}</h3>
+                                <div class="report-meta">
+                                    <span><i class="fas fa-user-edit" aria-hidden="true"></i> ${escapeHtml(report.author)}</span>
+                                    <span><i class="fas fa-calendar-alt" aria-hidden="true"></i> ${report.date}</span>
+                                    <span><i class="fas fa-clock" aria-hidden="true"></i> ${report.time}</span>
+                                    ${report.media && report.media.length > 0 ? 
+                                        `<span><i class="fas fa-images" aria-hidden="true"></i> ${report.media.length}个媒体文件</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="report-actions">
+                                <button class="btn btn-primary" onclick="openPasswordModal('edit', ${report.id})" aria-label="编辑周报: ${escapeHtml(report.title)}">
+                                    <i class="fas fa-edit" aria-hidden="true"></i> 编辑
+                                </button>
+                                <button class="btn btn-danger" onclick="openPasswordModal('delete', ${report.id})" aria-label="删除周报: ${escapeHtml(report.title)}">
+                                    <i class="fas fa-trash" aria-hidden="true"></i> 删除
+                                </button>
+                            </div>
+                        </div>
+                        <div class="report-content">${escapeHtml(report.content).replace(/\n/g, '<br>')}</div>
+                        ${mediaHtml}
+                    </section>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // 下载媒体文件
+        function downloadMedia(dataUrl, filename) {
+            try {
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = filename;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error('下载失败:', error);
+                alert('下载失败，请重试或检查文件权限');
+            }
+        }
+
+        // 保存到本地存储
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('class_weekly_reports_accessibility_fixed', JSON.stringify(weeklyReports));
+            } catch (error) {
+                console.error('保存到本地存储失败:', error);
+                alert('保存失败，可能是存储空间不足');
+            }
+        }
+
+        // HTML转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
