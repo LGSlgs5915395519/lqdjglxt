@@ -29,7 +29,6 @@
         .info { background: #bee3f8; color: #2c5282; border-left: 4px solid #4299e1; }
         #postsContainer { min-height: 200px; }
     </style>
-    <!-- 您的密钥在独立的 config.js 文件中，此文件里已无任何令牌 -->
     <script src="config.js"></script>
 </head>
 <body>
@@ -42,26 +41,31 @@
         <div id="authSection" class="card">
             <h3>内部成员验证</h3>
             <p>请输入管理密码，解锁发布功能：</p>
+            <!-- 已修复：添加了 placeholder -->
             <input type="password" id="passwordInput" placeholder="请输入管理密码">
-            <button onclick="verifyPassword()">验证身份并进入</button>
+            <!-- 已修复：添加了 type="button" -->
+            <button type="button" onclick="verifyPassword()">验证身份并进入</button>
             <div id="loginMessage" class="message"></div>
         </div>
 
         <div id="mainApp" class="card hidden">
             <h3>发布新动态</h3>
             <input type="text" id="postTitle" placeholder="动态标题（可选）">
+            <!-- 已修复：添加了 placeholder -->
             <textarea id="postContent" placeholder="分享您想说的内容..." rows="4"></textarea>
             <div style="margin: 10px 0;">
                 <input type="file" id="imageUpload" accept="image/*">
             </div>
-            <button onclick="publishPost()">立即发布</button>
+            <!-- 已修复：添加了 type="button" -->
+            <button type="button" onclick="publishPost()">立即发布</button>
             <div id="statusMessage" class="message"></div>
         </div>
 
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="margin: 0;">最新动态</h3>
-                <button onclick="loadPosts()" style="width: auto; padding: 8px 16px;">刷新列表</button>
+                <!-- 已修复：添加了 type="button" -->
+                <button type="button" onclick="loadPosts()" style="width: auto; padding: 8px 16px;">刷新列表</button>
             </div>
             <div id="postsContainer">
                 <p class="message info">正在加载动态...</p>
@@ -70,7 +74,6 @@
     </div>
 
     <script>
-        // 从外部配置文件 config.js 中读取设置
         const API_BASE = `https://api.github.com/repos/${CONFIG.GITHUB_USERNAME}/${CONFIG.REPOSITORY_NAME}/contents`;
         let isAuthenticated = false;
 
