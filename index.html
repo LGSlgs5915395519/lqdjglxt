@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>班级动态系统</title>
     <style>
+        /* 样式部分保持不变，确保界面一致 */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Microsoft YaHei', sans-serif; }
         body { background: #f0f2f5; padding: 20px; }
         .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); overflow: hidden; }
@@ -29,6 +30,7 @@
         .info { background: #bee3f8; color: #2c5282; border-left: 4px solid #4299e1; }
         #postsContainer { min-height: 200px; }
     </style>
+    <!-- 关键：引入外部配置文件，密钥在这里面 -->
     <script src="config.js"></script>
 </head>
 <body>
@@ -38,33 +40,31 @@
             <p class="subtitle">安全、实时的班级信息中心</p>
         </header>
 
+        <!-- 密码验证区域 -->
         <div id="authSection" class="card">
             <h3>内部成员验证</h3>
             <p>请输入管理密码，解锁发布功能：</p>
-            <!-- 已修复：添加了 placeholder -->
             <input type="password" id="passwordInput" placeholder="请输入管理密码">
-            <!-- 已修复：添加了 type="button" -->
             <button type="button" onclick="verifyPassword()">验证身份并进入</button>
             <div id="loginMessage" class="message"></div>
         </div>
 
+        <!-- 发布动态区域（验证后显示） -->
         <div id="mainApp" class="card hidden">
             <h3>发布新动态</h3>
             <input type="text" id="postTitle" placeholder="动态标题（可选）">
-            <!-- 已修复：添加了 placeholder -->
             <textarea id="postContent" placeholder="分享您想说的内容..." rows="4"></textarea>
             <div style="margin: 10px 0;">
                 <input type="file" id="imageUpload" accept="image/*">
             </div>
-            <!-- 已修复：添加了 type="button" -->
             <button type="button" onclick="publishPost()">立即发布</button>
             <div id="statusMessage" class="message"></div>
         </div>
 
+        <!-- 动态展示区域 -->
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="margin: 0;">最新动态</h3>
-                <!-- 已修复：添加了 type="button" -->
                 <button type="button" onclick="loadPosts()" style="width: auto; padding: 8px 16px;">刷新列表</button>
             </div>
             <div id="postsContainer">
@@ -74,15 +74,11 @@
     </div>
 
     <script>
+        // 从外部配置文件 config.js 中读取设置
         const API_BASE = `https://api.github.com/repos/${CONFIG.GITHUB_USERNAME}/${CONFIG.REPOSITORY_NAME}/contents`;
         let isAuthenticated = false;
 
-        function showMessage(elementId, text, type = 'info') {
-            const el = document.getElementById(elementId);
-            el.textContent = text;
-            el.className = `message ${type}`;
-        }
-
+        // 密码验证
         function verifyPassword() {
             const input = document.getElementById('passwordInput').value;
             if (input === CONFIG.ADMIN_PASSWORD) {
@@ -90,12 +86,13 @@
                 document.getElementById('authSection').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
                 showMessage('loginMessage', '✅ 验证成功！管理功能已解锁。', 'success');
-                loadPosts();
+                loadPosts(); // 登录后立即加载动态
             } else {
                 showMessage('loginMessage', '❌ 密码错误，请重试。', 'error');
             }
         }
 
+        // 发布动态
         async function publishPost() {
             if (!isAuthenticated) {
                 showMessage('statusMessage', '请先验证身份！', 'error');
@@ -131,6 +128,7 @@
             }
         }
 
+        // 获取数据文件
         async function fetchDataFile() {
             const url = `${API_BASE}/${CONFIG.DATA_FILE}`;
             const headers = { 'Authorization': `token ${CONFIG.GITHUB_TOKEN}` };
@@ -150,6 +148,7 @@
             }
         }
 
+        // 上传图片
         async function uploadImageToGitHub(file) {
             const filename = `images/${Date.now()}_${file.name}`;
             return new Promise((resolve, reject) => {
@@ -168,6 +167,7 @@
             });
         }
 
+        // 更新数据文件
         async function updateDataFile(data, sha, commitMsg) {
             const res = await fetch(`${API_BASE}/${CONFIG.DATA_FILE}`, {
                 method: 'PUT',
@@ -184,6 +184,7 @@
             }
         }
 
+        // 加载动态
         async function loadPosts() {
             const container = document.getElementById('postsContainer');
             try {
@@ -223,13 +224,21 @@
             }
         }
 
+        // 清空表单
         function clearForm() {
             document.getElementById('postTitle').value = '';
             document.getElementById('postContent').value = '';
             document.getElementById('imageUpload').value = '';
-            showMessage('statusMessage', '', 'info');
         }
 
+        // 显示消息
+        function showMessage(elementId, text, type = 'info') {
+            const el = document.getElementById(elementId);
+            el.textContent = text;
+            el.className = `message ${type}`;
+        }
+
+        // 页面加载时运行
         window.onload = loadPosts;
     </script>
 </body>
