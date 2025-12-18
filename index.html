@@ -29,50 +29,42 @@
         .info { background: #bee3f8; color: #2c5282; border-left: 4px solid #4299e1; }
         #postsContainer { min-height: 200px; }
     </style>
-    <!-- 关键：引入外部配置文件，密钥在这里面 -->
+    <!-- 重要：您的密钥在独立的 config.js 文件中 -->
     <script src="config.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🏫 班级动态系统</h1>
-            <p class="subtitle">安全、实时、便捷的班级信息中心</p>
+            <h1>班级动态系统</h1>
+            <p class="subtitle">安全、实时的班级信息中心</p>
         </header>
 
         <div id="authSection" class="card">
-            <h3>🔐 内部成员验证</h3>
+            <h3>内部成员验证</h3>
             <p>请输入管理密码，解锁发布功能：</p>
             <input type="password" id="passwordInput" placeholder="请输入管理密码">
-            <!-- 已修复：按钮添加了 type="button" -->
-            <button type="button" onclick="verifyPassword()">验证身份并进入</button>
+            <button onclick="verifyPassword()">验证身份并进入</button>
             <div id="loginMessage" class="message"></div>
         </div>
 
         <div id="mainApp" class="card hidden">
-            <h3>✍️ 发布新动态</h3>
-            <input type="text" id="postTitle" placeholder="动态标题（可选，填写更清晰）">
+            <h3>发布新动态</h3>
+            <input type="text" id="postTitle" placeholder="动态标题（可选）">
             <textarea id="postContent" placeholder="分享您想说的内容..." rows="4"></textarea>
-            
-            <!-- 已修复：为文件上传输入框添加了 label，并修正了按钮类型 -->
-            <div style="display: flex; gap: 10px; margin: 10px 0; align-items: center;">
-                <label style="flex-grow: 1;">
-                    <input type="file" id="imageUpload" accept="image/*" style="width: 100%; padding: 10px; border: 2px solid #e1e5e9; border-radius: 8px;">
-                </label>
-                <button type="button" onclick="clearForm()" style="width: auto; padding: 10px 20px; background: #a0aec0;">清空</button>
+            <div style="margin: 10px 0;">
+                <input type="file" id="imageUpload" accept="image/*">
             </div>
-            
-            <button type="button" onclick="publishPost()">🚀 立即发布</button>
+            <button onclick="publishPost()">立即发布</button>
             <div id="statusMessage" class="message"></div>
         </div>
 
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="margin: 0;">📰 最新动态</h3>
-                <!-- 已修复：按钮添加了 type="button" -->
-                <button type="button" onclick="loadPosts()" style="width: auto; padding: 8px 16px;">🔄 刷新列表</button>
+                <h3 style="margin: 0;">最新动态</h3>
+                <button onclick="loadPosts()" style="width: auto; padding: 8px 16px;">刷新列表</button>
             </div>
             <div id="postsContainer">
-                <p class="message info">正在加载动态，请稍候...</p>
+                <p class="message info">正在加载动态...</p>
             </div>
         </div>
     </div>
@@ -145,7 +137,6 @@
                 throw new Error(`获取数据失败 (HTTP ${res.status}): ${errorText}`);
             }
             const file = await res.json();
-            // 确保文件内容被正确解码
             try {
                 const decodedContent = atob(file.content.replace(/\s/g, ''));
                 return { data: JSON.parse(decodedContent), sha: file.sha };
@@ -224,7 +215,7 @@
                 container.innerHTML = html;
             } catch (error) {
                 console.error('加载动态时出错:', error);
-                container.innerHTML = '<p class="message error">❌ 加载动态失败，请检查控制台或网络。</p>';
+                container.innerHTML = '<p class="message error">❌ 加载动态失败。</p>';
             }
         }
 
