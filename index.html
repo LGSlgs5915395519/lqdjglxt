@@ -3,69 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>班级动态系统</title>
+    <title>班级动态周报系统</title>
     <style>
-        body { font-family: sans-serif; margin: 40px; background-color: #f5f5f5; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .auth-section, .main-app { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
-        input, textarea, button { display: block; margin: 10px 0; padding: 10px; width: 100%; box-sizing: border-box; }
-        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #45a049; }
-        .dynamic-item { border-bottom: 1px solid #eee; padding: 10px 0; }
-        .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
-        .success { background-color: #dff0d8; color: #3c763d; }
-        .error { background-color: #f2dede; color: #a94442; }
-        #imageGallery img { max-width: 200px; margin: 5px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: #f5f5f5; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1, h2, h3 { margin-bottom: 15px; color: #2c3e50; }
+        .auth-box, .publish-box, .feed { background: #f8f9fa; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid #3498db; }
+        input, textarea, button { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+        button { background: #3498db; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background: #2980b9; }
+        .message { padding: 10px; margin: 10px 0; border-radius: 4px; text-align: center; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .post { background: white; padding: 15px; margin: 15px 0; border-radius: 5px; border: 1px solid #e1e8ed; }
+        .post img { max-width: 100%; height: auto; border-radius: 5px; margin-top: 10px; }
+        .meta { color: #7f8c8d; font-size: 0.9em; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecf0f1; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📢 班级动态系统</h1>
-        <p>共享班级点滴，记录成长足迹</p>
-
-        <!-- 身份验证区域 -->
-        <div id="authSection" class="auth-section">
-            <h3>🔐 成员验证</h3>
-            <p>请输入管理密码以发布和管理动态：</p>
-            <input type="password" id="adminPasswordInput" placeholder="请输入密码">
+        <h1>📢 班级动态周报系统</h1>
+        
+        <!-- 密码验证区域 -->
+        <div id="authBox" class="auth-box">
+            <h3>🔐 内部成员验证</h3>
+            <input type="password" id="passwordInput" placeholder="请输入管理密码">
             <button onclick="verifyPassword()">进入系统</button>
-            <p id="loginMessage" class="message"></p>
+            <div id="loginMessage" class="message"></div>
         </div>
 
-        <!-- 主功能区域（验证后显示） -->
-        <div id="mainApp" class="main-app" style="display: none;">
+        <!-- 发布动态区域（验证后显示） -->
+        <div id="publishBox" class="publish-box hidden">
             <h3>✨ 发布新动态</h3>
-            <textarea id="newContent" placeholder="分享新鲜事..." rows="4"></textarea>
+            <input type="text" id="postTitle" placeholder="请输入动态标题">
+            <textarea id="postContent" placeholder="请输入动态内容" rows="3"></textarea>
             <input type="file" id="imageUpload" accept="image/*">
-            <button onclick="submitDynamic()">发布动态</button>
-            <p id="statusMessage" class="message"></p>
+            <button onclick="publishPost()">发布动态</button>
+            <div id="statusMessage" class="message"></div>
+        </div>
 
-            <hr>
-
-            <h3>📋 动态列表</h3>
-            <button onclick="loadDynamics()">刷新动态</button>
-            <div id="dynamicsList"></div>
+        <!-- 动态展示区域 -->
+        <div class="feed">
+            <h3>📋 动态列表 <button onclick="loadPosts()" style="width: auto; padding: 5px 10px;">刷新</button></h3>
+            <div id="postsContainer"></div>
         </div>
     </div>
 
     <script>
-        // === 🔧 核心配置区 - 开始 ===
-        // ！！！重要：请修改以下配置为您自己的信息 ！！！
+        // ==================== 配置区域 ====================
+        // 【重要】请修改以下信息为您自己的！
         const CONFIG = {
-            GITHUB_USERNAME: 'LGSlgs15915395519', // 您的 GitHub 用户名
-            REPOSITORY_NAME: 'lqdjglxt',          // 您的仓库名
-            GITHUB_TOKEN: 'ghp_xxxxxxxxxxxxxxxxxxxx', // 您的个人访问令牌（PAT）
-            DATA_FILE: 'class_dynamics.json',      // 存储动态数据的文件名
-            // 系统管理密码（初始为123456789，可在系统内修改）
-            ADMIN_PASSWORD: '123456789',
-            // 密码重置密钥（忘记密码时使用）
-            PASSWORD_RESET_KEY: 'SZ15915395519'
+            GITHUB_USERNAME: 'LGSlgs15915395519',     // 您的GitHub用户名
+            REPOSITORY_NAME: 'lqdjglxt',              // 您的仓库名
+            GITHUB_TOKEN: 'ghp_xxxxxxxxxxxxxxxxxxxx', // 您的GitHub Token
+            DATA_FILE: 'posts.json',                   // 数据文件名（不用改）
+            ADMIN_PASSWORD: '123456789'               // 管理密码（可以改）
         };
-        // GitHub API 基础地址
-        const API_BASE = `https://api.github.com/repos/${CONFIG.GITHUB_USERNAME}/${CONFIG.REPOSITORY_NAME}/contents`;
-        // === 🔧 核心配置区 - 结束 ===
+        // ==================================================
 
-        // 全局状态
+        const API_BASE = `https://api.github.com/repos/${CONFIG.GITHUB_USERNAME}/${CONFIG.REPOSITORY_NAME}/contents`;
         let isAuthenticated = false;
 
         // 显示消息
@@ -77,136 +75,120 @@
         }
 
         // 验证密码
-        async function verifyPassword() {
-            const inputPassword = document.getElementById('adminPasswordInput').value;
-            
-            if (inputPassword === CONFIG.ADMIN_PASSWORD) {
+        function verifyPassword() {
+            const input = document.getElementById('passwordInput').value;
+            if (input === CONFIG.ADMIN_PASSWORD) {
                 isAuthenticated = true;
-                document.getElementById('authSection').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'block';
+                document.getElementById('authBox').classList.add('hidden');
+                document.getElementById('publishBox').classList.remove('hidden');
                 showMessage('loginMessage', '验证成功！', false);
-                await loadDynamics(); // 登录后加载动态
+                loadPosts();
             } else {
-                showMessage('loginMessage', '密码错误，请重试！', true);
+                showMessage('loginMessage', '密码错误！', true);
             }
         }
 
-        // 提交动态到 GitHub
-        async function submitDynamic() {
+        // 发布动态
+        async function publishPost() {
             if (!isAuthenticated) {
                 showMessage('statusMessage', '请先验证身份！', true);
                 return;
             }
 
-            const content = document.getElementById('newContent').value.trim();
+            const title = document.getElementById('postTitle').value.trim();
+            const content = document.getElementById('postContent').value.trim();
             const imageFile = document.getElementById('imageUpload').files[0];
 
-            if (!content && !imageFile) {
-                showMessage('statusMessage', '请输入内容或选择图片！', true);
+            if (!title && !content && !imageFile) {
+                showMessage('statusMessage', '请输入标题、内容或选择图片！', true);
                 return;
             }
 
             showMessage('statusMessage', '发布中...', false);
 
             try {
-                // 1. 获取现有的动态数据文件
-                const { existingData, fileSha } = await getExistingDataFile();
+                // 1. 获取现有数据
+                const { existingPosts, fileSha } = await getDataFile();
                 
-                // 2. 处理图片上传（如果有）
+                // 2. 处理图片上传
                 let imageUrl = null;
                 if (imageFile) {
                     imageUrl = await uploadImage(imageFile);
                 }
 
-                // 3. 创建新动态对象
-                const newDynamic = {
+                // 3. 创建新动态
+                const newPost = {
                     id: Date.now(),
+                    title: title || '无标题',
                     content: content,
                     imageUrl: imageUrl,
-                    timestamp: new Date().toISOString(),
-                    author: '班级成员' // 可以扩展为输入作者名
+                    timestamp: new Date().toISOString()
                 };
 
-                // 4. 将新动态添加到数据列表
-                existingData.push(newDynamic);
+                // 4. 添加到数据列表
+                existingPosts.unshift(newPost); // 新内容放在最前面
 
-                // 5. 更新 GitHub 上的数据文件
-                await updateDataFile(existingData, fileSha, `添加新动态: ${content.substring(0, 20)}...`);
-
-                // 6. 清理表单并更新界面
-                document.getElementById('newContent').value = '';
-                document.getElementById('imageUpload').value = '';
-                showMessage('statusMessage', '动态发布成功！', false);
+                // 5. 更新到GitHub
+                await updateDataFile(existingPosts, fileSha, `发布新动态: ${title}`);
                 
-                // 重新加载动态列表
-                await loadDynamics();
+                // 6. 清理表单
+                document.getElementById('postTitle').value = '';
+                document.getElementById('postContent').value = '';
+                document.getElementById('imageUpload').value = '';
+                
+                showMessage('statusMessage', '发布成功！', false);
+                loadPosts();
 
             } catch (error) {
-                console.error('提交失败:', error);
+                console.error('发布失败:', error);
                 showMessage('statusMessage', '发布失败: ' + error.message, true);
             }
         }
 
-        // 获取现有的数据文件
-        async function getExistingDataFile() {
+        // 获取数据文件
+        async function getDataFile() {
             try {
                 const response = await fetch(`${API_BASE}/${CONFIG.DATA_FILE}`, {
-                    headers: {
-                        'Authorization': `token ${CONFIG.GITHUB_TOKEN}`,
-                        'Accept': 'application/vnd.github.v3+json',
-                        'User-Agent': 'Class-Dynamics-App'
-                    }
+                    headers: { 'Authorization': `token ${CONFIG.GITHUB_TOKEN}` }
                 });
 
                 if (response.status === 404) {
-                    // 文件不存在，创建空数组
-                    return { existingData: [], fileSha: null };
+                    return { existingPosts: [], fileSha: null };
                 }
                 
-                if (!response.ok) {
-                    throw new Error(`获取数据失败: ${response.status}`);
-                }
-
+                if (!response.ok) throw new Error('获取数据失败');
+                
                 const fileInfo = await response.json();
                 const content = JSON.parse(atob(fileInfo.content));
-                return { existingData: content, fileSha: fileInfo.sha };
+                return { existingPosts: content, fileSha: fileInfo.sha };
 
             } catch (error) {
-                throw new Error('获取现有数据时出错: ' + error.message);
+                throw new Error('获取数据文件失败: ' + error.message);
             }
         }
 
-        // 上传图片到 GitHub
+        // 上传图片
         async function uploadImage(file) {
-            const timestamp = Date.now();
-            const filename = `images/dynamic_${timestamp}.${file.name.split('.').pop()}`;
+            const filename = `images/${Date.now()}_${file.name}`;
             const reader = new FileReader();
-
+            
             return new Promise((resolve, reject) => {
                 reader.onload = async function(e) {
                     try {
                         const base64Content = e.target.result.split(',')[1];
-                        
                         const response = await fetch(`${API_BASE}/${filename}`, {
                             method: 'PUT',
                             headers: {
                                 'Authorization': `token ${CONFIG.GITHUB_TOKEN}`,
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/vnd.github.v3+json',
-                                'User-Agent': 'Class-Dynamics-App'
+                                'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                message: `上传动态图片: ${filename}`,
+                                message: `上传图片: ${filename}`,
                                 content: base64Content
                             })
                         });
 
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.message || '图片上传失败');
-                        }
-
-                        // 返回图片的访问地址（通过 GitHub Pages）
+                        if (!response.ok) throw new Error('图片上传失败');
                         resolve(`https://${CONFIG.GITHUB_USERNAME}.github.io/${CONFIG.REPOSITORY_NAME}/${filename}`);
                     } catch (error) {
                         reject(error);
@@ -217,87 +199,71 @@
         }
 
         // 更新数据文件
-        async function updateDataFile(data, fileSha, commitMessage) {
+        async function updateDataFile(data, sha, message) {
             const response = await fetch(`${API_BASE}/${CONFIG.DATA_FILE}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `token ${CONFIG.GITHUB_TOKEN}`,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/vnd.github.v3+json',
-                    'User-Agent': 'Class-Dynamics-App'
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: commitMessage,
+                    message: message,
                     content: btoa(JSON.stringify(data, null, 2)),
-                    sha: fileSha
+                    sha: sha
                 })
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || '更新数据文件失败');
+                const error = await response.json();
+                throw new Error(error.message || '更新失败');
             }
-            return await response.json();
         }
 
-        // 加载并显示动态
-        async function loadDynamics() {
+        // 加载并展示动态
+        async function loadPosts() {
+            const container = document.getElementById('postsContainer');
+            container.innerHTML = '<p>加载中...</p>';
+
             try {
-                const response = await fetch(`${API_BASE}/${CONFIG.DATA_FILE}`, {
-                    headers: {
-                        'Accept': 'application/vnd.github.v3+json',
-                        'User-Agent': 'Class-Dynamics-App'
-                    }
-                });
-
+                const response = await fetch(`${API_BASE}/${CONFIG.DATA_FILE}`);
+                
                 if (response.status === 404) {
-                    document.getElementById('dynamicsList').innerHTML = '<p>还没有动态，快来发布第一条吧！</p>';
+                    container.innerHTML = '<p>还没有动态，快来发布第一条吧！</p>';
                     return;
                 }
-
-                if (!response.ok) {
-                    throw new Error('加载动态失败');
-                }
-
+                
+                if (!response.ok) throw new Error('加载失败');
+                
                 const fileInfo = await response.json();
-                const dynamics = JSON.parse(atob(fileInfo.content));
+                const posts = JSON.parse(atob(fileInfo.content));
 
-                if (dynamics.length === 0) {
-                    document.getElementById('dynamicsList').innerHTML = '<p>暂无动态</p>';
+                if (posts.length === 0) {
+                    container.innerHTML = '<p>暂无动态</p>';
                     return;
                 }
-
-                // 按时间倒序排列
-                dynamics.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
                 let html = '';
-                dynamics.forEach(dynamic => {
-                    const date = new Date(dynamic.timestamp).toLocaleString('zh-CN');
+                posts.forEach(post => {
+                    const date = new Date(post.timestamp).toLocaleString('zh-CN');
                     html += `
-                        <div class="dynamic-item">
-                            <div class="dynamic-content">
-                                <p>${dynamic.content || ''}</p>
-                                ${dynamic.imageUrl ? `<img src="${dynamic.imageUrl}" alt="动态图片" style="max-width: 300px;">` : ''}
-                            </div>
-                            <div class="dynamic-meta">
-                                <small>📅 ${date} | 👤 ${dynamic.author}</small>
-                            </div>
+                        <div class="post">
+                            <h4>${post.title}</h4>
+                            <p>${post.content.replace(/\n/g, '<br>')}</p>
+                            ${post.imageUrl ? `<img src="${post.imageUrl}" alt="动态图片">` : ''}
+                            <div class="meta">📅 ${date}</div>
                         </div>
                     `;
                 });
 
-                document.getElementById('dynamicsList').innerHTML = html;
+                container.innerHTML = html;
 
             } catch (error) {
-                console.error('加载动态失败:', error);
-                document.getElementById('dynamicsList').innerHTML = '<p>加载动态失败，请刷新重试</p>';
+                container.innerHTML = '<p>加载动态失败</p>';
             }
         }
 
-        // 页面加载时尝试加载动态（无需验证即可查看）
-        window.addEventListener('DOMContentLoaded', function() {
-            loadDynamics();
-        });
+        // 页面加载时尝试加载动态
+        window.addEventListener('DOMContentLoaded', loadPosts);
     </script>
 </body>
 </html>
