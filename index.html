@@ -3,154 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>班级动态｜内部系统</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>班级动态系统</title>
     <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3a0ca3;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --success: #4cc9f0;
-            --danger: #f72585;
-            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; }
-        body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; padding: 20px; color: var(--dark); }
-        .container { max-width: 900px; margin: 20px auto; }
-        header { text-align: center; margin-bottom: 30px; padding: 20px; background: white; border-radius: 16px; box-shadow: var(--card-shadow); }
-        h1 { color: var(--secondary); font-size: 2.5rem; margin-bottom: 10px; }
-        .subtitle { color: #6c757d; font-size: 1.1rem; }
-        .card { background: white; border-radius: 16px; padding: 25px; margin-bottom: 25px; box-shadow: var(--card-shadow); border: none; }
-        .auth-section input, .publish-section input, .publish-section textarea { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #e9ecef; border-radius: 10px; font-size: 16px; transition: all 0.3s; }
-        .auth-section input:focus, .publish-section input:focus, .publish-section textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2); }
-        .btn { display: inline-block; padding: 12px 28px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; text-align: center; text-decoration: none; }
-        .btn:hover { background: var(--secondary); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); }
-        .btn-sm { padding: 8px 18px; font-size: 14px; }
-        .btn-block { display: block; width: 100%; }
-        .btn-success { background: var(--success); }
-        .btn-danger { background: var(--danger); }
-        .message { padding: 12px 18px; border-radius: 10px; margin: 15px 0; display: none; }
-        .message.error { background: #ffebee; color: #c62828; border-left: 5px solid #c62828; display: block; }
-        .message.success { background: #e8f5e9; color: #2e7d32; border-left: 5px solid #2e7d32; display: block; }
-        .post { border-left: 5px solid var(--primary); padding: 20px; margin-bottom: 20px; background: var(--light); border-radius: 0 12px 12px 0; }
-        .post h4 { color: var(--secondary); margin-bottom: 8px; font-size: 1.3rem; }
-        .post p { line-height: 1.6; margin-bottom: 12px; }
-        .post img { max-width: 100%; max-height: 400px; border-radius: 10px; margin: 10px 0; border: 1px solid #ddd; }
-        .meta { font-size: 0.9em; color: #6c757d; display: flex; justify-content: space-between; border-top: 1px dashed #dee2e6; padding-top: 10px; margin-top: 15px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Microsoft YaHei', sans-serif; }
+        body { background: #f0f2f5; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); overflow: hidden; }
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 40px; text-align: center; }
+        h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .subtitle { font-size: 1.1em; opacity: 0.9; }
+        .card { padding: 25px; margin: 0; border-bottom: 1px solid #eee; }
+        .card:last-of-type { border-bottom: none; }
+        h3 { color: #333; margin-bottom: 20px; font-size: 1.4em; }
+        input, textarea, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; font-size: 16px; }
+        input, textarea { border: 2px solid #e1e5e9; background: #f8f9fa; transition: all 0.3s; }
+        input:focus, textarea:focus { outline: none; border-color: #667eea; background: white; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+        .post { background: #f8fafc; border-left: 4px solid #667eea; padding: 20px; margin-bottom: 20px; border-radius: 0 8px 8px 0; }
+        .post img { max-width: 100%; max-height: 300px; border-radius: 8px; margin: 10px 0; border: 1px solid #ddd; }
+        .meta { color: #718096; font-size: 0.9em; margin-top: 10px; display: flex; justify-content: space-between; }
         .hidden { display: none !important; }
-        .flex { display: flex; gap: 10px; align-items: center; }
-        .icon { margin-right: 8px; }
+        .message { padding: 12px 18px; border-radius: 8px; margin: 10px 0; }
+        .error { background: #fed7d7; color: #c53030; border-left: 4px solid #e53e3e; }
+        .success { background: #c6f6d5; color: #22543d; border-left: 4px solid #38a169; }
+        .info { background: #bee3f8; color: #2c5282; border-left: 4px solid #4299e1; }
         #postsContainer { min-height: 200px; }
-        .loading { text-align: center; padding: 40px; color: #6c757d; }
-        footer { text-align: center; margin-top: 30px; color: #6c757d; font-size: 0.9em; padding: 20px; }
     </style>
+    <!-- 关键：引入外部配置文件，密钥在这里面 -->
+    <script src="config.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-newspaper icon"></i>班级动态系统</h1>
-            <p class="subtitle">记录成长点滴，共享班级时光</p>
+            <h1>🏫 班级动态系统</h1>
+            <p class="subtitle">安全、实时、便捷的班级信息中心</p>
         </header>
 
-        <!-- 密码验证区域 -->
-        <section id="authSection" class="card auth-section">
-            <h3><i class="fas fa-lock icon"></i>内部成员验证</h3>
-            <p>请输入管理密码以进入发布界面：</p>
-            <input type="password" id="passwordInput" placeholder="请输入您的管理密码">
-            <button onclick="verifyPassword()" class="btn btn-block">验证身份并进入</button>
+        <div id="authSection" class="card">
+            <h3>🔐 内部成员验证</h3>
+            <p>请输入管理密码，解锁发布功能：</p>
+            <input type="password" id="passwordInput" placeholder="请输入管理密码">
+            <button onclick="verifyPassword()">验证身份并进入</button>
             <div id="loginMessage" class="message"></div>
-        </section>
+        </div>
 
-        <!-- 发布动态区域（验证后显示） -->
-        <section id="publishSection" class="card publish-section hidden">
-            <h3><i class="fas fa-edit icon"></i>发布新动态</h3>
-            <input type="text" id="postTitle" placeholder="为您的动态起个标题（可选）">
+        <div id="mainApp" class="card hidden">
+            <h3>✍️ 发布新动态</h3>
+            <input type="text" id="postTitle" placeholder="动态标题（可选，填写更清晰）">
             <textarea id="postContent" placeholder="分享您想说的内容..." rows="4"></textarea>
-            <div class="flex">
+            <div style="display: flex; gap: 10px; margin: 10px 0; align-items: center;">
                 <input type="file" id="imageUpload" accept="image/*" style="flex-grow: 1;">
-                <button onclick="clearForm()" class="btn btn-danger btn-sm"><i class="fas fa-times"></i> 清空</button>
+                <button onclick="clearForm()" style="width: auto; padding: 10px 20px; background: #a0aec0;">清空</button>
             </div>
-            <div class="flex" style="margin-top: 15px;">
-                <button onclick="publishPost()" class="btn btn-success" style="flex-grow: 1;"><i class="fas fa-paper-plane"></i> 发布动态</button>
-                <button onclick="logout()" class="btn btn-danger"><i class="fas fa-sign-out-alt"></i> 退出</button>
-            </div>
+            <button onclick="publishPost()">🚀 立即发布</button>
             <div id="statusMessage" class="message"></div>
-        </section>
+        </div>
 
-        <!-- 动态展示区域 -->
-        <section class="card">
-            <div class="flex" style="justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="margin: 0;"><i class="fas fa-list icon"></i>最新动态</h3>
-                <button onclick="loadPosts()" class="btn btn-sm"><i class="fas fa-sync-alt"></i> 刷新列表</button>
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">📰 最新动态</h3>
+                <button onclick="loadPosts()" style="width: auto; padding: 8px 16px;">🔄 刷新列表</button>
             </div>
             <div id="postsContainer">
-                <p class="loading"><i class="fas fa-spinner fa-spin"></i> 正在加载动态...</p>
+                <p class="message info">正在加载动态，请稍候...</p>
             </div>
-        </section>
-
-        <footer>
-            <p>本系统由班级技术部提供支持 | 数据通过 GitHub 安全存储 | © 2023 班级动态</p>
-        </footer>
+        </div>
     </div>
 
     <script>
-        // ==================== 【您的配置区域】 ====================
-        // ！！！请务必修改以下信息为您自己的 ！！！
-        const CONFIG = {
-            GITHUB_USERNAME: 'LGSlgs15915395519',     // 您的 GitHub 用户名
-            REPOSITORY_NAME: 'lqdjglxt',              // 您的仓库名
-            GITHUB_TOKEN: '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', // 您的 GitHub 个人访问令牌 (PAT)
-            DATA_FILE: 'class_posts.json',            // 存储数据的文件名
-            ADMIN_PASSWORD: '123456789'               // 管理密码
-        };
-        // ==========================================================
-
         const API_BASE = `https://api.github.com/repos/${CONFIG.GITHUB_USERNAME}/${CONFIG.REPOSITORY_NAME}/contents`;
         let isAuthenticated = false;
 
-        // 工具函数：显示消息
-        function showMessage(elementId, text, isError = false) {
+        function showMessage(elementId, text, type = 'info') {
             const el = document.getElementById(elementId);
             el.textContent = text;
-            el.className = isError ? 'message error' : 'message success';
+            el.className = `message ${type}`;
         }
 
-        // 1. 密码验证
         function verifyPassword() {
             const input = document.getElementById('passwordInput').value;
             if (input === CONFIG.ADMIN_PASSWORD) {
                 isAuthenticated = true;
                 document.getElementById('authSection').classList.add('hidden');
-                document.getElementById('publishSection').classList.remove('hidden');
-                showMessage('loginMessage', '✅ 验证成功！管理功能已解锁。', false);
+                document.getElementById('mainApp').classList.remove('hidden');
+                showMessage('loginMessage', '✅ 验证成功！管理功能已解锁。', 'success');
                 loadPosts();
             } else {
-                showMessage('loginMessage', '❌ 密码错误，请重试。', true);
+                showMessage('loginMessage', '❌ 密码错误，请重试。', 'error');
             }
         }
 
-        // 2. 发布动态（核心功能）
         async function publishPost() {
             if (!isAuthenticated) {
-                showMessage('statusMessage', '请先验证身份！', true);
+                showMessage('statusMessage', '请先验证身份！', 'error');
                 return;
             }
             const title = document.getElementById('postTitle').value.trim();
             const content = document.getElementById('postContent').value.trim();
             const imageFile = document.getElementById('imageUpload').files[0];
             if (!title && !content && !imageFile) {
-                showMessage('statusMessage', '请填写内容或选择一张图片。', true);
+                showMessage('statusMessage', '请填写内容或选择一张图片。', 'error');
                 return;
             }
-            showMessage('statusMessage', '⏳ 发布中，请稍候...', false);
+            showMessage('statusMessage', '⏳ 发布中，请稍候...', 'info');
             try {
-                // 2.1 获取现有数据
                 const { data: existingPosts, sha } = await fetchDataFile();
-                // 2.2 处理图片上传
                 let imageUrl = null;
                 if (imageFile) imageUrl = await uploadImageToGitHub(imageFile);
-                // 2.3 创建新动态对象
                 const newPost = {
                     id: Date.now(),
                     title: title || '无标题',
@@ -158,20 +117,17 @@
                     imageUrl: imageUrl,
                     time: new Date().toLocaleString('zh-CN')
                 };
-                // 2.4 添加到列表并更新
                 existingPosts.unshift(newPost);
-                await updateDataFile(existingPosts, sha, `添加新动态: ${title}`);
-                // 2.5 成功处理
-                showMessage('statusMessage', '🎉 动态发布成功！', false);
+                await updateDataFile(existingPosts, sha, `发布新动态: ${title}`);
+                showMessage('statusMessage', '🎉 动态发布成功！', 'success');
                 clearForm();
                 await loadPosts();
             } catch (error) {
                 console.error('发布失败:', error);
-                showMessage('statusMessage', `发布失败: ${error.message}`, true);
+                showMessage('statusMessage', `发布失败: ${error.message}`, 'error');
             }
         }
 
-        // 3. 从GitHub获取数据文件
         async function fetchDataFile() {
             const url = `${API_BASE}/${CONFIG.DATA_FILE}`;
             const headers = { 'Authorization': `token ${CONFIG.GITHUB_TOKEN}` };
@@ -182,23 +138,16 @@
             return { data: JSON.parse(atob(file.content)), sha: file.sha };
         }
 
-        // 4. 上传图片到GitHub
         async function uploadImageToGitHub(file) {
-            const filename = `images/post_${Date.now()}.${file.name.split('.').pop()}`;
+            const filename = `images/${Date.now()}_${file.name}`;
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = async (e) => {
                     const base64Content = e.target.result.split(',')[1];
                     const res = await fetch(`${API_BASE}/${filename}`, {
                         method: 'PUT',
-                        headers: {
-                            'Authorization': `token ${CONFIG.GITHUB_TOKEN}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            message: `上传图片: ${filename}`,
-                            content: base64Content
-                        })
+                        headers: { 'Authorization': `token ${CONFIG.GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: `上传图片: ${filename}`, content: base64Content })
                     });
                     if (!res.ok) reject(new Error('图片上传失败'));
                     resolve(`https://${CONFIG.GITHUB_USERNAME}.github.io/${CONFIG.REPOSITORY_NAME}/${filename}`);
@@ -207,14 +156,10 @@
             });
         }
 
-        // 5. 更新数据文件到GitHub
         async function updateDataFile(data, sha, commitMsg) {
             const res = await fetch(`${API_BASE}/${CONFIG.DATA_FILE}`, {
                 method: 'PUT',
-                headers: {
-                    'Authorization': `token ${CONFIG.GITHUB_TOKEN}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Authorization': `token ${CONFIG.GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: commitMsg,
                     content: btoa(JSON.stringify(data, null, 2)),
@@ -224,21 +169,19 @@
             if (!res.ok) throw new Error('更新到GitHub失败');
         }
 
-        // 6. 加载并显示动态列表
         async function loadPosts() {
             const container = document.getElementById('postsContainer');
-            container.innerHTML = '<p class="loading"><i class="fas fa-spinner fa-spin"></i> 加载中...</p>';
             try {
                 const res = await fetch(`${API_BASE}/${CONFIG.DATA_FILE}`);
                 if (res.status === 404) {
-                    container.innerHTML = '<p>📭 还没有动态，快来发布第一条吧！</p>';
+                    container.innerHTML = '<p class="message info">📭 还没有动态，快来发布第一条吧！</p>';
                     return;
                 }
                 if (!res.ok) throw new Error('加载失败');
                 const file = await res.json();
                 const posts = JSON.parse(atob(file.content));
                 if (posts.length === 0) {
-                    container.innerHTML = '<p>📭 暂无动态。</p>';
+                    container.innerHTML = '<p class="message info">📭 暂无动态。</p>';
                     return;
                 }
                 let html = '';
@@ -257,27 +200,18 @@
                 });
                 container.innerHTML = html;
             } catch (error) {
-                container.innerHTML = '<p class="error">❌ 加载动态失败，请检查网络或刷新。</p>';
+                container.innerHTML = '<p class="message error">❌ 加载动态失败，请检查网络。</p>';
             }
         }
 
-        // 辅助函数
         function clearForm() {
             document.getElementById('postTitle').value = '';
             document.getElementById('postContent').value = '';
             document.getElementById('imageUpload').value = '';
-            showMessage('statusMessage', '', false);
-        }
-        function logout() {
-            isAuthenticated = false;
-            document.getElementById('authSection').classList.remove('hidden');
-            document.getElementById('publishSection').classList.add('hidden');
-            document.getElementById('passwordInput').value = '';
-            showMessage('loginMessage', '您已安全退出。', false);
+            showMessage('statusMessage', '', 'info');
         }
 
-        // 页面加载时自动获取动态
-        window.addEventListener('DOMContentLoaded', loadPosts);
+        window.onload = loadPosts;
     </script>
 </body>
 </html>
