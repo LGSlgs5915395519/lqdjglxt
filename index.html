@@ -29,7 +29,7 @@
         .info { background: #bee3f8; color: #2c5282; border-left: 4px solid #4299e1; }
         #postsContainer { min-height: 200px; }
     </style>
-    <!-- 重要：您的密钥在独立的 config.js 文件中 -->
+    <!-- 您的密钥在独立的 config.js 文件中，此文件里已无任何令牌 -->
     <script src="config.js"></script>
 </head>
 <body>
@@ -70,6 +70,7 @@
     </div>
 
     <script>
+        // 从外部配置文件 config.js 中读取设置
         const API_BASE = `https://api.github.com/repos/${CONFIG.GITHUB_USERNAME}/${CONFIG.REPOSITORY_NAME}/contents`;
         let isAuthenticated = false;
 
